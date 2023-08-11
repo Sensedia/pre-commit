@@ -10,6 +10,10 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 ENDCOLOR='\033[0m'
 
+# files to control scanning
+flag_filename=".verify-this"
+trivy_ignorefile=".trivyignore"
+
 # Validate Dependencies
 function validate_dependencies() {
     if ! command -v trivy &> /dev/null && ! command -v docker &> /dev/null; then
@@ -34,7 +38,24 @@ function parse_args() {
     # Remove spaces in beginning of string
     DIR=${DIR# }
     ARGS=${ARGS# }
+}
 
+function test_terragrunt_file() {
+    local dir="$1"
+    local flag_file="$dir/$flag_filename"
+
+    if [[ -f "$flag_file" ]]; then
+        cd "$dir"
+        if terragrunt terragrunt-info &> /dev/null; then
+            return 0
+        else
+            echo -e "${RED}Error: Check if you're logged in to the right account!${ENDCOLOR}"
+            exit 1
+        fi
+
+    else
+        return 1
+    fi
 }
 
 # Scanning directories
@@ -56,22 +77,42 @@ function trivy_scan() {
 
     for dir in $1; do
 
+        # Testing terragrunt file
+        if test_terragrunt_file "$dir"; then
+            cd "$dir"
+            terragrunt plan -out=tfplan.binary --terragrunt-non-interactive > /dev/null
+            TG_CACHE_DIR=$(find "$dir" -type d -name '.terraform' -exec dirname {} \+)
+            cd "$TG_CACHE_DIR"
+            terraform show -json tfplan.binary > tfplan.json
+
+        else
+            continue
+        fi
+
         echo -e "\n---------------------------------------"
         echo "SCANNING -> $dir"
         echo -e "---------------------------------------\n"
 
-        if [[ $trivy_bin -eq 1 ]]; then
-            trivy config ${ARGS} "$dir"
+        # check if ignorefile exists
+        if [[ -f "$dir/$trivy_ignorefile" ]]; then
+            ARGS+=" --ignorefile $dir/$trivy_ignorefile"
+        fi
 
+        if [[ $trivy_bin -eq 1 ]]; then
+            trivy config ${ARGS} "$TG_CACHE_DIR/tfplan.json"
+
+            # remove plan files
+            rm -rf "$TG_CACHE_DIR/tfplan.binary" "$TG_CACHE_DIR/tfplan.json"
         else
             docker run --rm -v "$PWD:/src:rw,Z" -w "/src" aquasec/trivy:latest config \
                 --cache-dir /src/.pre-commit-trivy-cache \
-                ${ARGS} "$dir"
+                ${ARGS} "$TG_CACHE_DIR/tfplan.json"
 
         fi
 
         echo -e "\n${GREEN}No Problems Found!!!${ENDCOLOR}"
     done
+
 }
 
 function main() {
