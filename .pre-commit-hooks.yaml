@@ -4,3 +4,9 @@
   require_serial: true
   entry: hooks/trivy_terraform.sh
   language: script
+- id: terragrunt_trivy
+  name: Terraform validate with trivy
+  description: Static analysis of Terraform templates to spot potential security issues.
+  require_serial: true
+  entry: hooks/trivy_terragrunt.sh
+  language: script
