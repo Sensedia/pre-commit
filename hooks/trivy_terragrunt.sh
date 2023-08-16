@@ -11,7 +11,6 @@ BLUE='\033[0;34m'
 ENDCOLOR='\033[0m'
 
 # files to control scanning
-flag_filename=".verify-this"
 trivy_ignorefile=".trivyignore"
 
 # Validate Dependencies
@@ -38,23 +37,24 @@ function parse_args() {
     # Remove spaces in beginning of string
     DIR=${DIR# }
     ARGS=${ARGS# }
+
 }
 
 function test_terragrunt_file() {
     local dir="$1"
-    local flag_file="$dir/$flag_filename"
+    local check_login
 
-    if [[ -f "$flag_file" ]]; then
-        cd "$dir"
-        if terragrunt terragrunt-info &> /dev/null; then
-            return 0
-        else
-            echo -e "${RED}Error: Check if you're logged in to the right account!${ENDCOLOR}"
-            exit 1
-        fi
-
+    cd "$dir"
+    if terragrunt terragrunt-info &> /dev/null; then
+        return 0
     else
-        return 1
+        check_login=$(terragrunt terragrunt-info 2>&1)
+        if grep -qi "backend initialization" <<< "$check_login"; then
+            echo -e "${RED}Error: Check if you're logged in on the account account!${ENDCOLOR}"
+            exit 1
+        else
+            return 1
+        fi
     fi
 }
 
