@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.2.0](https://github.com/Sensedia/pre-commit/compare/v1.1.0...v1.2.0) (2023-08-16)
+
+
+### Features
+
+* Trivy ignore file for terraform hook ([60ac864](https://github.com/Sensedia/pre-commit/commit/60ac86428784b0623e1dd5a17297a8522922f805))
+
 # [1.1.0](https://github.com/Sensedia/pre-commit/compare/v1.0.0...v1.1.0) (2023-08-16)
 
 
