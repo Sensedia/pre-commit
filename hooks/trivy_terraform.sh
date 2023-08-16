@@ -10,6 +10,9 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 ENDCOLOR='\033[0m'
 
+# files to control scanning
+trivy_ignorefile=".trivyignore"
+
 # Validate Dependencies
 function validate_dependencies() {
     if ! command -v trivy &> /dev/null && ! command -v docker &> /dev/null; then
@@ -59,6 +62,11 @@ function trivy_scan() {
         echo -e "\n---------------------------------------"
         echo "SCANNING -> $dir"
         echo -e "---------------------------------------\n"
+
+        # check if ignorefile exists
+        if [[ -f "$dir/$trivy_ignorefile" ]]; then
+            ARGS+=" --ignorefile $dir/$trivy_ignorefile"
+        fi
 
         if [[ $trivy_bin -eq 1 ]]; then
             trivy config ${ARGS} "$dir"
