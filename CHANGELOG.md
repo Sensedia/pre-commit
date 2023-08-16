@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.1.0](https://github.com/Sensedia/pre-commit/compare/v1.0.0...v1.1.0) (2023-08-16)
+
+
+### Features
+
+* terragrunt trivy hook ([87513e7](https://github.com/Sensedia/pre-commit/commit/87513e7a5b0be3b1f28d383ade674f70b9a4e961))
+* terragrunt trivy hook ([fe88be9](https://github.com/Sensedia/pre-commit/commit/fe88be9282a51b009ffd0e89e39d3ebac9c4a196))
+
 # 1.0.0 (2023-08-04)
 
 
